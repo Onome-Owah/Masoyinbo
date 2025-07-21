@@ -1,26 +1,49 @@
-import { Injectable } from '@nestjs/common';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Signup_dto } from './dto/signup.dto';
+import { User } from 'src/user/entities/user.entity';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
-  create(createAuthDto: CreateAuthDto) {
-    return 'This action adds a new auth';
-  }
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+  ) {}
 
-  findAll() {
-    return `This action returns all auth`;
-  }
+  async signup(dto: Signup_dto) {
+    const { email, password, reenter_password } = dto;
 
-  findOne(id: number) {
-    return `This action returns a #${id} auth`;
-  }
+    const emailExist = await this.userRepository.findOne({ where: { email } });
 
-  update(id: number, updateAuthDto: UpdateAuthDto) {
-    return `This action updates a #${id} auth`;
-  }
+    if (emailExist) {
+      throw new BadRequestException('Email already exists');
+    }
 
-  remove(id: number) {
-    return `This action removes a #${id} auth`;
+    if (password !== reenter_password) {
+      throw new BadRequestException('Passwords do not match');
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    //const otp = await this.otpService.generateOtp();
+    const user = this.userRepository.create({
+      email,
+      password: hashedPassword,
+      is_completed: false,
+      //otp,
+      otp_expires_at: new Date(Date.now() + 1 * 60 * 1000),
+    });
+
+    user.lives = 3;
+
+    await this.userRepository.save(user);
+
+    //await this.otpService.send_otp(email, otp);
+
+    return {
+      message: 'Step 1 completed successfully. OTP sent to your email.',
+      email,
+    };
   }
 }
