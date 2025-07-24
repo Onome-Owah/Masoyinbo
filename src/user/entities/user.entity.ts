@@ -38,11 +38,11 @@ export class User {
   @Column({ unique: true, nullable: true })
   username?: string;
 
-  @Column({ nullable: true })
-  otp: string;
+  @Column({ type: 'varchar', nullable: true })
+  otp: string | null;
 
   @Column({ type: 'timestamp', nullable: true })
-  otp_expires_at: Date;
+  otp_expires_at: Date | null;
 
   @Column({ type: 'enum', enum: UserType, default: UserType.USER })
   user_type: UserType;

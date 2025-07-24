@@ -11,6 +11,7 @@ import { Complete_onboarding_dto, Signup_dto } from './dto/signup.dto';
 import { User } from 'src/user/entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { Login_dto } from './dto/login.dto';
+import { OtpService } from './otp.service';
 
 @Injectable()
 export class AuthService {
@@ -18,6 +19,7 @@ export class AuthService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
+    private readonly otpService: OtpService,
   ) {}
 
   async signup(dto: Signup_dto) {
@@ -122,6 +124,26 @@ export class AuthService {
         is_completed: user.is_completed,
         is_survey_completed: user.is_survey_completed,
       },
+    };
+  }
+
+  async forget_password(email: string) {
+    const user = await this.userRepository.findOne({ where: { email } });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const otp = await this.otpService.generateOtp();
+
+    await this.otpService.send_otp(email, otp);
+    user.otp = otp;
+    user.otp_expires_at = new Date(Date.now() + 5 * 60 * 1000);
+    await this.userRepository.save(user);
+
+    return {
+      success: true,
+      message: 'OTP sent to your email',
     };
   }
 }
