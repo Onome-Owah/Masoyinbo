@@ -1,15 +1,23 @@
-import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Complete_onboarding_dto, Signup_dto } from './dto/signup.dto';
 import { User } from 'src/user/entities/user.entity';
 import * as bcrypt from 'bcrypt';
+import { Login_dto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly jwtService: JwtService,
   ) {}
 
   async signup(dto: Signup_dto) {

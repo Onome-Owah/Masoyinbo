@@ -8,9 +8,8 @@ import {
   Delete,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
 import { Complete_onboarding_dto, Signup_dto } from './dto/signup.dto';
+import { Login_dto } from './dto/login.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -24,5 +23,10 @@ export class AuthController {
   @Post('complete-onboarding')
   async complete_onboarding(@Body() dto: Complete_onboarding_dto) {
     return this.authService.complete_onboarding(dto);
+  }
+
+  @Post('login')
+  async login(@Body() dto: Login_dto) {
+    return this.authService.login(dto);
   }
 }
