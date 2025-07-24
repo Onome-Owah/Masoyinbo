@@ -10,6 +10,7 @@ import {
 import { AuthService } from './auth.service';
 import { Complete_onboarding_dto, Signup_dto } from './dto/signup.dto';
 import { Login_dto } from './dto/login.dto';
+import { Forget_password_dto } from './dto/forget-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -28,5 +29,10 @@ export class AuthController {
   @Post('login')
   async login(@Body() dto: Login_dto) {
     return this.authService.login(dto);
+  }
+
+  @Post('forget-password')
+  async forget_password(@Body() dto: Forget_password_dto) {
+    return this.authService.forget_password(dto.email);
   }
 }
