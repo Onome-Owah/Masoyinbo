@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Complete_onboarding_dto, Signup_dto } from './dto/signup.dto';
@@ -81,4 +81,39 @@ export class AuthService {
     };
   }
 
+  async login(dto: Login_dto) {
+    const user = await this.userRepository.findOne({
+      where: { email: dto.email },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const isPasswordValid = await bcrypt.compare(dto.password, user.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Password incorrect');
+    }
+
+    const payload = {
+      userId: user.id,
+      email: user.email,
+      user_type: user.user_type,
+    };
+
+    const access_token = this.jwtService.sign(payload, { expiresIn: '7d' });
+
+    return {
+      message: 'Login successful',
+      data: {
+        access_token,
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        gender: user.gender,
+        is_completed: user.is_completed,
+        is_survey_completed: user.is_survey_completed,
+      },
+    };
+  }
 }
