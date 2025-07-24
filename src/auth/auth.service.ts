@@ -46,4 +46,39 @@ export class AuthService {
       email,
     };
   }
+
+  async complete_onboarding(dto: Complete_onboarding_dto) {
+    const { email, username } = dto;
+
+    const user = await this.userRepository.findOne({ where: { email } });
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    // Check if the username is already taken by another user
+    const existingUser = await this.userRepository.findOne({
+      where: { username },
+    });
+    if (existingUser && existingUser.id !== user.id) {
+      throw new BadRequestException('Username is already in use');
+    }
+
+    user.username = username;
+    user.gender = dto.gender;
+    user.is_completed = true;
+
+    await this.userRepository.save(user);
+
+    return {
+      message: 'Signup completed successfully.',
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        gender: user.gender,
+        isCompleted: user.is_completed,
+      },
+    };
+  }
+
 }
