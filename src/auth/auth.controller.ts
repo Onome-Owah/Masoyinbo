@@ -14,6 +14,7 @@ import { Complete_onboarding_dto, Signup_dto } from './dto/signup.dto';
 import { Login_dto } from './dto/login.dto';
 import { Forget_password_dto } from './dto/forget-password.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { SurveyResponseDto } from './dto/survey.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -46,5 +47,10 @@ export class AuthController {
   @Post('forget-password')
   async forget_password(@Body() dto: Forget_password_dto) {
     return this.authService.forget_password(dto.email);
+  }
+
+  @Post('user-survey')
+  async user_survey(@Body() dto: SurveyResponseDto) {
+    return this.authService.user_survey(dto);
   }
 }
