@@ -12,6 +12,7 @@ import { User } from 'src/user/entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { Login_dto } from './dto/login.dto';
 import { OtpService } from './otp.service';
+import { SurveyResponseDto } from './dto/survey.dto';
 
 @Injectable()
 export class AuthService {
@@ -151,4 +152,29 @@ export class AuthService {
       message: 'OTP sent to your email',
     };
   }
+
+  async user_survey(surveyResponseDto: SurveyResponseDto) {
+    const {
+      email,
+      survey_age,
+      survey_commitment,
+      survey_reason,
+      survey_usage,
+    } = surveyResponseDto;
+    const user = await this.userRepository.findOne({ where: { email } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    user.survey_reason = survey_reason ?? [];
+    user.survey_age = survey_age ?? '';
+    user.survey_commitment = survey_commitment ?? '';
+    user.survey_usage = survey_usage ?? [];
+    user.is_survey_completed = true;
+
+    await this.userRepository.save(user);
+
+    return { message: 'Survey response updated successfully' };
+  }
+
 }
