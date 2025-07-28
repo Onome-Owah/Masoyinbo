@@ -127,6 +127,11 @@ export class AuthService {
     };
   }
 
+  async logout(userId: string) {
+    await this.userRepository.update(userId, { refresh_token: undefined });
+    return { message: 'Logged out successfully' };
+  }
+
   async forget_password(email: string) {
     const user = await this.userRepository.findOne({ where: { email } });
 
