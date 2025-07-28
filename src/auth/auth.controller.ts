@@ -12,7 +12,7 @@ import {
 import { AuthService } from './auth.service';
 import { Complete_onboarding_dto, Signup_dto } from './dto/signup.dto';
 import { Login_dto } from './dto/login.dto';
-import { Forget_password_dto } from './dto/forget-password.dto';
+import { Forget_password_dto, Reset_password_dto } from './dto/forget-password.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { SurveyResponseDto } from './dto/survey.dto';
 
@@ -52,5 +52,14 @@ export class AuthController {
   @Post('user-survey')
   async user_survey(@Body() dto: SurveyResponseDto) {
     return this.authService.user_survey(dto);
+  }
+
+  @Post('reset-password')
+  async reset_password(@Body() dto: Reset_password_dto) {
+    return this.authService.reset_password(
+      dto.email,
+      dto.password,
+      dto.reenter_password,
+    );
   }
 }

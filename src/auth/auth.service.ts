@@ -177,4 +177,30 @@ export class AuthService {
     return { message: 'Survey response updated successfully' };
   }
 
+  async softDeleteUser(userId: string): Promise<void> {
+    await this.userRepository.softDelete(userId);
+  }
+
+  async reset_password(
+    email: string,
+    password: string,
+    reenter_password: string,
+  ) {
+    const user = await this.userRepository.findOne({ where: { email } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (password !== reenter_password) {
+      throw new BadRequestException('Passwords do not match');
+    }
+
+    user.password = await bcrypt.hash(password, 10);
+    await this.userRepository.save(user);
+
+    return {
+      success: true,
+      message: 'Password reset successful',
+    };
+  }
 }

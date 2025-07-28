@@ -9,3 +9,22 @@ export class Forget_password_dto {
   @Transform(({ value }) => value.toLowerCase().trim())
   email: string;
 }
+
+
+export class Reset_password_dto {
+  @ApiProperty()
+  @IsEmail()
+  @IsNotEmpty()
+  @Transform(({ value }) => value.toLowerCase().trim())
+  email: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  password: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
+  reenter_password: string;
+}
