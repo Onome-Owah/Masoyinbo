@@ -15,30 +15,39 @@ export class S3Service {
   private region: string;
 
   constructor(private readonly configService: ConfigService) {
-    this.bucketName = this.configService.get<string>('AWS_S3_BUCKET_NAME') ?? '';
-    if (!this.bucketName) {
-      throw new Error('AWS_S3_BUCKET_NAME is not defined in environment variables');
-    }
-    this.region = this.configService.get<string>('AWS_REGION') ?? '';
-    if (!this.region) {
-      throw new Error('AWS_REGION is not defined in environment variables');
-    }
+    this.bucketName =
+      this.configService.get<string>('AWS_S3_BUCKET_NAME') ?? '';
+    // if (!this.bucketName) {
+    //   throw new Error(
+    //     'AWS_S3_BUCKET_NAME is not defined in environment variables',
+    //   );
+    // }
+    // this.region = this.configService.get<string>('AWS_REGION') ?? '';
+    // if (!this.region) {
+    //   throw new Error('AWS_REGION is not defined in environment variables');
+    // }
 
     const accessKeyId = this.configService.get<string>('AWS_ACCESS_KEY_ID');
-    const secretAccessKey = this.configService.get<string>('AWS_SECRET_ACCESS_KEY');
-    if (!accessKeyId) {
-      throw new Error('AWS_ACCESS_KEY_ID is not defined in environment variables');
-    }
-    if (!secretAccessKey) {
-      throw new Error('AWS_SECRET_ACCESS_KEY is not defined in environment variables');
-    }
-    this.s3 = new S3Client({
-      region: this.region,
-      credentials: {
-        accessKeyId,
-        secretAccessKey,
-      },
-    });
+    const secretAccessKey = this.configService.get<string>(
+      'AWS_SECRET_ACCESS_KEY',
+    );
+    // if (!accessKeyId) {
+    //   throw new Error(
+    //     'AWS_ACCESS_KEY_ID is not defined in environment variables',
+    //   );
+    // }
+    // if (!secretAccessKey) {
+    //   throw new Error(
+    //     'AWS_SECRET_ACCESS_KEY is not defined in environment variables',
+    //   );
+    // }
+    //     this.s3 = new S3Client({
+    //       region: this.region,
+    //       credentials: {
+    //         accessKeyId,
+    //         secretAccessKey,
+    //       },
+    //     });
   }
 
   async uploadToS3(file: Express.Multer.File, folder: string): Promise<string> {
