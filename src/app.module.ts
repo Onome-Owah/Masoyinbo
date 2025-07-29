@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { User } from './user/entities/user.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { FileModule } from './file/file.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { FileModule } from './file/file.module';
       }),
     }),
     FileModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],
