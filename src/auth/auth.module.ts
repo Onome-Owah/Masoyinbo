@@ -6,6 +6,8 @@ import { User } from 'src/user/entities/user.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { OtpService } from './otp.service';
+import { S3ServiceException } from '@aws-sdk/client-s3';
+import { S3Service } from 'src/utils/s3service';
 
 @Module({
   imports: [
@@ -20,6 +22,6 @@ import { OtpService } from './otp.service';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, OtpService, ConfigService],
+  providers: [AuthService, OtpService, ConfigService, S3Service],
 })
 export class AuthModule {}
