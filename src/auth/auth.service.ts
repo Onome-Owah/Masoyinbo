@@ -8,7 +8,11 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Complete_onboarding_dto, Signup_dto } from './dto/signup.dto';
+import {
+  Complete_onboarding_dto,
+  Signup_dto,
+  UpdateUserDto,
+} from './dto/signup.dto';
 import { User } from 'src/user/entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { Login_dto } from './dto/login.dto';
@@ -233,6 +237,66 @@ export class AuthService {
       console.error('File upload error:', error);
       throw new InternalServerErrorException(
         `File upload error: ${error.message}`,
+      );
+    }
+  }
+
+  async updateUserDetails(userId: string, dto: UpdateUserDto) {
+    try {
+      const user = await this.userRepository.findOne({ where: { id: userId } });
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      if (dto.password || dto.reenter_password) {
+        if (dto.password !== dto.reenter_password) {
+          throw new BadRequestException('Passwords do not match');
+        }
+        user.password = await bcrypt.hash(dto.password, 10);
+      }
+
+      // Update only the provided fields
+      if (dto.email) user.email = dto.email;
+      if (dto.username) user.username = dto.username;
+      if (dto.gender) user.gender = dto.gender;
+      if (dto.image) user.image = dto.image;
+
+      await this.userRepository.save(user);
+
+      const {
+        password,
+        otp,
+        otp_expires_at,
+        refresh_token,
+        lives,
+        last_Life_Deduction,
+        total_coins_earned,
+        total_correct_answers,
+        total_questions_answered,
+        total_time_spent,
+        is_payment,
+        deleted_at,
+        created_at,
+        ...rest
+      } = user;
+
+      return {
+        success: true,
+        message: 'User updated successfully',
+        data: { ...rest },
+      };
+    } catch (error) {
+      console.error('Error updating user:', error);
+
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while updating the user',
       );
     }
   }

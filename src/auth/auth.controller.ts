@@ -10,9 +10,12 @@ import {
   Req,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { Complete_onboarding_dto, Signup_dto } from './dto/signup.dto';
+import { Complete_onboarding_dto, Signup_dto, UpdateUserDto } from './dto/signup.dto';
 import { Login_dto } from './dto/login.dto';
-import { Forget_password_dto, Reset_password_dto } from './dto/forget-password.dto';
+import {
+  Forget_password_dto,
+  Reset_password_dto,
+} from './dto/forget-password.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { SurveyResponseDto } from './dto/survey.dto';
 
@@ -61,5 +64,16 @@ export class AuthController {
       dto.password,
       dto.reenter_password,
     );
+  }
+
+  @ApiBearerAuth()
+  //@UseGuards(AuthGuard('jwt'))
+  @Patch('update')
+  async updateUser(@Req() request, @Body() dto: UpdateUserDto) {
+    const userId = request.user.userId;
+    if (!userId) {
+      throw new Error('User ID not found in request');
+    }
+    return this.authService.updateUserDetails(userId, dto);
   }
 }
