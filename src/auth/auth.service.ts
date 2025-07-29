@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -13,6 +14,7 @@ import * as bcrypt from 'bcrypt';
 import { Login_dto } from './dto/login.dto';
 import { OtpService } from './otp.service';
 import { SurveyResponseDto } from './dto/survey.dto';
+import { S3Service } from 'src/utils/s3service';
 
 @Injectable()
 export class AuthService {
@@ -21,6 +23,7 @@ export class AuthService {
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
     private readonly otpService: OtpService,
+    private readonly s3Service: S3Service,
   ) {}
 
   async signup(dto: Signup_dto) {
@@ -202,5 +205,35 @@ export class AuthService {
       success: true,
       message: 'Password reset successful',
     };
+  }
+
+  async fileUploads(image: Express.Multer.File) {
+    try {
+      if (!image) {
+        return {
+          success: false,
+          message: 'No image file provided',
+          files: [],
+        };
+      }
+
+      if (!image.mimetype.startsWith('image/')) {
+        throw new BadRequestException('Invalid file type. Expected an image.');
+      }
+
+      const imageUrl = await this.s3Service.uploadToS3(image, 'images');
+      //const uploadedFiles = [{ type: FileType.IMAGE, url: imageUrl }];
+
+      return {
+        success: true,
+        message: 'Files uploaded successfully',
+        //files: uploadedFiles,
+      };
+    } catch (error) {
+      console.error('File upload error:', error);
+      throw new InternalServerErrorException(
+        `File upload error: ${error.message}`,
+      );
+    }
   }
 }
