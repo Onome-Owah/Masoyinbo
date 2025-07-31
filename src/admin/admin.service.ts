@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   HttpException,
   Injectable,
@@ -117,6 +118,41 @@ export class AdminService {
       console.error(error);
 
       throw new InternalServerErrorException('Failed to log in admin');
+    }
+  }
+
+  async update_admin_password(
+    email: string,
+    password: string,
+    confirm_password: string,
+  ) {
+    try {
+      const user = await this.adminRepository.findOne({ where: { email } });
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      if (password !== confirm_password) {
+        throw new BadRequestException('Passwords do not match');
+      }
+
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+
+      user.password = hashedPassword;
+      await this.adminRepository.save(user);
+
+      return { success: true, message: 'Password updated successfully' };
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+
+      console.error(error);
+      throw new InternalServerErrorException('Failed to update password');
     }
   }
 }
