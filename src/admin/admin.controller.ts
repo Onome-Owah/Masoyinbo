@@ -13,4 +13,9 @@ export class AdminController {
   create(@Body() dto: Create_Admin_Dto, @Req() req) {
     return this.adminService.onboardAdmin(dto);
   }
+
+  @Post('login-admin')
+  login_admin(@Body() dto: Login_Admin_Dto) {
+    return this.adminService.login_admin(dto.email, dto.password);
+  }
 }

@@ -2,7 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import { IsEmail, IsString } from "class-validator";
 
-export class Create_Admin_Dto {
+export class Login_Admin_Dto {
   @ApiProperty()
   @IsEmail()
   @Transform(({ value }) => value.toLowerCase().trim())
@@ -10,14 +10,5 @@ export class Create_Admin_Dto {
 
   @ApiProperty()
   @IsString()
-  first_name: string;
-
-  @ApiProperty()
-  @IsString()
-  last_name: string;
-
-  @ApiProperty()
-  @IsString()
-  role: string;
+  password: string;
 }
-
