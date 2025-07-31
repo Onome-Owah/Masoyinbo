@@ -4,12 +4,15 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Create_Admin_Dto } from './dto/create-admin.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { Admin_Entity } from './entities/admin.entity';
+import * as bcrypt from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AdminService {
@@ -18,6 +21,7 @@ export class AdminService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Admin_Entity)
     private readonly adminRepository: Repository<Admin_Entity>,
+    private readonly jwtService: JwtService,
   ) {}
   //Invite an admin via email and onboard them
   async onboardAdmin(createAdminDto: Create_Admin_Dto) {
@@ -62,6 +66,57 @@ export class AdminService {
       }
       console.error(error);
       throw new InternalServerErrorException('Failed to onboard admin');
+    }
+  }
+
+  async login_admin(email: string, password: string) {
+    try {
+      const user = await this.adminRepository.findOne({ where: { email } });
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
+        throw new UnauthorizedException('Password incorrect');
+      }
+
+      const payload = {
+        userId: user.id,
+        email: user.email,
+        user_type: user.user_type,
+      };
+
+      const access_token = this.jwtService.sign(payload, {
+        secret: process.env.JWT_SECRET,
+        expiresIn: '45m',
+      });
+
+      const reset_access_token = this.jwtService.sign(
+        { ...payload, purpose: 'reset' },
+        {
+          secret: process.env.JWT_SECRET,
+          expiresIn: '10m',
+        },
+      );
+
+      return {
+        success: true,
+        message: 'Login successful',
+        access_token,
+        reset_access_token,
+      };
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof UnauthorizedException
+      ) {
+        throw error;
+      }
+
+      console.error(error);
+
+      throw new InternalServerErrorException('Failed to log in admin');
     }
   }
 }
