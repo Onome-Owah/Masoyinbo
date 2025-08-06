@@ -1,15 +1,29 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateGameDto } from './dto/create-game.dto';
 import { UpdateGameDto } from './dto/update-game.dto';
 import { Repository } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Difficulty } from 'src/difficulty/entities/difficulty.entity';
+import { catchErrors } from 'src/utils/catch-error';
 
 @Injectable()
 export class GameService {
+  private readonly logger = new Logger(GameService.name);
+
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Difficulty)
+    private readonly difficultyRepository: Repository<Difficulty>,
+    @InjectRepository(Language)
+    private readonly languageRepository: Repository<Language>,
   ) {}
 
   async getUser(id: string) {
@@ -44,5 +58,30 @@ export class GameService {
         'An error occurred while fetching the user',
       );
     }
+  }
+
+  async get_all_modules(languageId: string) {
+    return catchErrors(async () => {
+      if (!languageId) {
+        throw new BadRequestException('Language ID must be provided.');
+      }
+
+      const language = await this.languageRepository.findOne({
+        where: { id: languageId },
+        relations: ['language_modules'],
+      });
+
+      if (!language) throw new NotFoundException('Language not found');
+
+      const difficulty = await this.difficultyRepository.find();
+      const modules = language.language_modules;
+
+      return {
+        data: {
+          difficulty,
+          modules,
+        },
+      };
+    });
   }
 }
