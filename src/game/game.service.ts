@@ -12,6 +12,7 @@ import { User } from 'src/user/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Difficulty } from 'src/difficulty/entities/difficulty.entity';
 import { catchErrors } from 'src/utils/catch-error';
+import { Question } from 'src/question/entities/question.entity';
 
 @Injectable()
 export class GameService {
@@ -24,6 +25,8 @@ export class GameService {
     private readonly difficultyRepository: Repository<Difficulty>,
     @InjectRepository(Language)
     private readonly languageRepository: Repository<Language>,
+    @InjectRepository(Question)
+    private readonly questionRepository: Repository<Question>,
   ) {}
 
   async getUser(id: string) {
@@ -82,6 +85,26 @@ export class GameService {
           modules,
         },
       };
+    });
+  }
+
+  // Get a random question from a specific section and difficulty
+  async getRandomQuestion(sectionId: string, difficultyId: string) {
+    return catchErrors(async () => {
+      const questions = await this.questionRepository
+        .createQueryBuilder('question')
+        .where('question.section = :sectionId', { sectionId })
+        .andWhere('question.difficulty = :difficultyId', { difficultyId })
+        .getMany();
+
+      if (questions.length === 0) {
+        throw new NotFoundException(
+          'No questions found for this section and difficulty',
+        );
+      }
+
+      const randomIndex = Math.floor(Math.random() * questions.length);
+      return questions[randomIndex];
     });
   }
 }
